@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.jxd.lr.dao.RepayMapper">
+
+
+    <insert id="addRepayRecord">
+        insert into repayrecord(lno,rbalance,rtime,rsno)
+        values (#{lno},#{rbalance},#{rtime},#{rsno})
+    </insert>
+
+    <select id="getRepayRecordList" resultType="map">
+        select r.rno,r.lno,r.rbalance,r.rtime,r.rsno,rs.rsname,r.rrcause from repayrecord r
+        left join loanrecord l on r.lno = l.lno left join user u on l.empno = u.empno
+        left join rstatus rs on r.rsno = rs.rsno
+        <where>
+            u.uname = #{uname}
+            <if test="lno != 0 ">
+                and r.lno = #{lno}
+            </if>
+        </where>
+        order by rno desc
+    </select>
+
+
+    <select id="mGetRepayRecordList" resultType="map">
+        select r.rno,r.lno,r.rbalance,r.rtime,r.rsno,rs.rsname,r.rrcause,e.ename from repayrecord r
+        left join loanrecord l on r.lno = l.lno
+        left join user u on l.empno = u.empno
+        left join rstatus rs on r.rsno = rs.rsno
+        left join emp e on u.empno = e.empno
+        <where>
+            deptno = (select deptno dt from user u left join emp e on u.empno = e.empno where u.uname = #{uname})
+            and ((r.rsno != 1 and e.jobno = 2) or (e.jobno = 1))
+            <if test="ename != '' and ename != null">
+                and e.ename like '%' #{ename} '%'
+            </if>
+            <if test="time1 != '' and time1 != null and time2 != '' and time2 != null ">
+                and r.rtime between #{time1} and #{time2}
+            </if>
+        </where>
+        order by rno desc
+    </select>
+
+    <select id="fGetRepayRecordList" resultType="map">
+        select r.rno,r.lno,r.rbalance,r.rtime,r.rsno,rs.rsname,r.rrcause,e.ename from repayrecord r
+        left join loanrecord l on r.lno = l.lno
+        left join rstatus rs on r.rsno = rs.rsno
+        left join emp e on l.empno = e.empno
+        <where>
+            r.rsno != 1
+            <if test="ename != '' and ename != null">
+                and e.ename like '%' #{ename} '%'
+            </if>
+            <if test="time1 != '' and time1 != null and time2 != '' and time2 != null ">
+                and r.rtime between #{time1} and #{time2}
+            </if>
+        </where>
+        order by rno desc
+    </select>
+
+    <update id="submitEmpRepay">
+        update repayrecord
+        set lno=#{lno},rbalance=#{rbalance},rtime=#{rtime},rsno = #{rsno}
+        where rno=#{rno}
+    </update>
+
+    <delete id="deleteBatchEmpRepay">
+        delete from repayrecord where rno in (
+        <foreach collection="array" item="rno" separator=",">
+            #{rno}
+        </foreach>
+        )
+    </delete>
+
+    <update id="mExamineEmpRepay">
+        update repayrecord
+        set rsno = #{rsno},rrcause = #{rrcause}
+        where rno=#{rno}
+    </update>
+
+    <delete id="deleteBatchEmpnoRepay">
+        delete from repayrecord where lno in (
+        <foreach collection="array" item="lno" separator=",">
+            #{lno}
+        </foreach>
+        )
+    </delete>
+
+
+</mapper>

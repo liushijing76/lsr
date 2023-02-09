@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.jxd.lr.dao.EmpMapper">
+    <select id="getAllEmpList" resultType="map">
+        select e.empno,e.ename,e.sex,j.jname,j.jobno, hiredate,e.deptno,e.mpno,e.idno, d.dname from emp e
+        left join dept d on d.deptno = e.deptno left join job j on e.jobno = j.jobno
+        <where>
+            <if test="ename != '' and ename != null">
+                ename like '%' #{ename} '%'
+            </if>
+            <if test="deptno != 0 ">
+                and e.deptno = #{deptno}
+            </if>
+        </where>
+        order by empno
+    </select>
+
+    <!--新增员工并返回员工编号-->
+    <insert id="addEmp"  useGeneratedKeys="true" keyProperty="empno" keyColumn="empno" >
+        insert into emp(ename,sex,jobno,hiredate,deptno,mpno,idno)
+        values(#{ename},#{sex},#{jobno},#{hiredate},#{deptno},#{mpno},#{idno})
+    </insert>
+
+
+    <update id="updateEmp">
+        update emp
+        set ename = #{ename},sex = #{sex},jobno = #{jobno},hiredate = #{hiredate},
+        deptno = #{deptno},mpno = #{mpno},idno = #{idno}
+        where empno = #{empno}
+    </update>
+
+    <delete id="deleteBatchEmp">
+        delete from emp where empno in (
+        <foreach collection="array" item="eno" separator=",">
+            #{eno}
+        </foreach>
+        )
+    </delete>
+
+    <select id="selectEmpCount" resultType="int">
+        select count(deptno) from emp where deptno = #{deptno}
+    </select>
+
+    <select id="getEmp" resultType="emp">
+        select empno,ename,sex,jobno,hiredate,deptno,mpno,idno from emp where empno = #{empno}
+    </select>
+
+    <select id="getPerInfo" resultType="map">
+        select e.empno,e.ename,e.sex,j.jname,j.jobno, hiredate,e.deptno,e.mpno,e.idno, d.dname,u.uname from emp e
+        left join user u on e.empno = u.empno
+        left join dept d on d.deptno = e.deptno left join job j on e.jobno = j.jobno
+        where uname = #{uname}
+    </select>
+
+    <update id="updateMpno">
+        update emp
+        set mpno = #{mpno}
+        where empno = #{empno}
+    </update>
+</mapper>

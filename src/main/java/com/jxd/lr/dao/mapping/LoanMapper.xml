@@ -1,0 +1,137 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.jxd.lr.dao.LoanMapper">
+    <select id="getLoanRecordList" resultType="map">
+        select l.lno,l.lbalance,lt.ltype,l.ltime,ls.lsname,e.empno,l.lcause,l.ltno,l.lsno,l.lrcause from loanrecord l
+        left join emp e on l.empno = e.empno
+        left join loantype lt on l.ltno = lt.ltno
+        left join lstatus ls on l.lsno = ls.lsno
+        <where>
+            l.empno = #{empno}
+            <if test="lbalance != '' and lbalance != null">
+                and  lbalance = #{lbalance}
+            </if>
+            <if test="ltno != 0 ">
+                and l.ltno = #{ltno}
+            </if>
+        </where>
+        order by lno desc
+    </select>
+
+    <select id="mGetLoanRecordList" resultType="map">
+        select l.lno,l.lbalance,lt.ltype,l.ltime,ls.lsname,e.ename,l.lcause,l.ltno,l.lsno,l.lrcause,l.empno from loanrecord l
+        left join emp e on l.empno = e.empno
+        left join user u on l.empno = u.empno
+        left join loantype lt on l.ltno = lt.ltno
+        left join lstatus ls on l.lsno = ls.lsno
+        <where>
+            deptno = (select deptno dt from user u left join emp e on u.empno = e.empno where u.uname = #{uname})
+            and  ((l.lsno != 1 and e.jobno = 2) or (e.jobno = 1))
+            <if test="ename != '' and ename != null">
+               and ename = #{ename}
+            </if>
+            <if test="ltno != 0 ">
+                and l.ltno = #{ltno}
+            </if>
+
+        </where>
+        order by lno desc
+    </select>
+
+    <select id="fGetLoanRecordList" resultType="map">
+        select l.lno,l.lbalance,lt.ltype,l.ltime,ls.lsname,e.ename,l.lcause,l.ltno,l.lsno,l.lrcause from loanrecord l
+        left join emp e on l.empno = e.empno
+        left join loantype lt on l.ltno = lt.ltno
+        left join lstatus ls on l.lsno = ls.lsno
+        <where>
+             l.lsno != 1
+            <if test="ename != '' and ename != null">
+                and ename = #{ename}
+            </if>
+            <if test="ltno != 0 ">
+                and l.ltno = #{ltno}
+            </if>
+        </where>
+        order by lno desc
+    </select>
+
+    <insert id="addLoanRecord">
+        insert into loanrecord(ltno,lbalance,ltime,lsno,empno,lcause,stillrepay)
+        values(#{ltno},#{lbalance},#{ltime},#{lsno},#{empno},#{lcause},#{stillrepay})
+    </insert>
+
+    <update id="updateLoanRecord">
+        update loanrecord
+        set ltno=#{ltno},lbalance=#{lbalance},ltime=#{ltime},lsno=#{lsno},empno=#{empno},lcause=#{lcause},stillrepay=#{stillrepay}
+        where lno = #{lno}
+    </update>
+
+    <delete id="deleteBatchEmpLoan">
+        delete from loanrecord where lno in (
+        <foreach collection="array" item="lno" separator=",">
+            #{lno}
+        </foreach>
+        )
+    </delete>
+
+    <select id="getAllLno" resultType="Lno">
+        select lr.lno from loanrecord lr
+        left join user u  on  lr.empno = u.empno
+        where uname = #{uname}
+    </select>
+
+    <select id="getLBalance" resultType="loanRecord">
+        select lbalance from loanrecord
+        where lno = #{lno}
+    </select>
+
+    <select id="selectRepay" resultType="loanRecord">
+        select stillrepay from loanrecord
+        where lno = #{lno}
+    </select>
+
+    <select id="judgeProcess" resultType="int">
+        select count(rno) from repayrecord
+        where  lno = #{lno} and rsno in(1,2,3)
+    </select>
+
+    <update id="mExamineEmpLoan">
+        update loanrecord
+        set lsno = #{lsno},lrcause = #{lrcause}
+        where lno = #{lno}
+    </update>
+
+    <update id="updateStillRepay">
+        update loanrecord
+        set stillrepay = #{stillrepay},lsno =#{lsno}
+        where lno = #{lno}
+    </update>
+
+    <select id="judge" resultType="int">
+        select count(lno) from loanrecord
+        where  ltno = #{ltno}
+    </select>
+
+    <select id = "judgeRecord" resultType="int">
+        select count(lno) from loanrecord
+        where empno = #{empno} and lsno in(2,3,4,5,6)
+    </select>
+
+    <delete id="deleteBatchEmpnoLoan">
+        delete from loanrecord where empno in (
+        <foreach collection="array" item="empno" separator=",">
+            #{empno}
+        </foreach>
+        )
+    </delete>
+
+    <select id="selectLnos" resultType="loanRecord">
+        select lno from loanrecord where empno in (
+        <foreach collection="array" item="empno" separator=",">
+            #{empno}
+        </foreach>
+        )
+    </select>
+
+</mapper>

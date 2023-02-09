@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.jxd.lr.dao.DeptMapper">
+    <select id="getAllDeptList" resultType="dept">
+        select deptno,dname,ctime from dept
+    </select>
+
+    <select id="getAllDeptInfo" resultType="map">
+        select d.deptno,d.dname,d.ctime,ifnull(t.count_emp,0) count_emp  from
+        dept d left join
+        (select deptno,count(empno) count_emp from emp group by deptno) t
+        on t.deptno = d.deptno
+        <where>
+            <if test="dname != '' and dname != null">
+                dname like '%' #{dname} '%'
+            </if>
+        </where>
+        order by deptno
+    </select>
+
+    <insert id="addDept">
+        insert into dept(dname,ctime)
+        values(#{dname},#{ctime})
+    </insert>
+
+    <update id="updateDept">
+        update dept
+        set dname = #{dname},ctime = #{ctime}
+        where deptno = #{deptno}
+    </update>
+
+    <delete id="deleteBatchDept">
+        delete from dept where deptno in (
+        <foreach collection="array" item="deptno" separator=",">
+            #{deptno}
+        </foreach>
+        )
+    </delete>
+
+    <delete id="deleteDept">
+        delete from dept where deptno = #{deptno}
+    </delete>
+</mapper>
